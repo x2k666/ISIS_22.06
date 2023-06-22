@@ -1,20 +1,67 @@
-﻿// IGNATENKO_A_A_09.03.02acs(1).cpp : Этот файл содержит функцию "main". Здесь начинается и заканчивается выполнение программы.
-//
+﻿#include <iostream>
+#include <ctime>
+#include <cstdlib>
+#include <omp.h>
 
-#include <iostream>
+const int ARRAY_SIZE = 10e6; // Размер массива
 
-int main()
-{
-    std::cout << "Hello World!\n";
+int main() {
+    // Создание и заполнение массива одинарной точности
+    float* Asgl = new float[ARRAY_SIZE];
+    for (int i = 0; i < ARRAY_SIZE; ++i) {
+        Asgl[i] = static_cast<float>(rand()) / RAND_MAX; // Заполнение случайным числом в диапазоне [0, 1]
+    }
+
+    // Создание и заполнение массива двойной точности
+    double* Adbl = new double[ARRAY_SIZE];
+    for (int i = 0; i < ARRAY_SIZE; ++i) {
+        Adbl[i] = static_cast<double>(rand()) / RAND_MAX; // Заполнение случайным числом в диапазоне [0, 1]
+    }
+
+    // Массивы для хранения времени выполнения для разных значений количества потоков
+    double elapsedTimesAsgl[5];
+    double elapsedTimesAdbl[5];
+
+    // Измерение времени суммирования массивов для разных значений количества потоков
+    int numThreads[] = { 2, 4, 8, 16, 32 };
+    for (int i = 0; i < 5; ++i) {
+        int numThread = numThreads[i];
+        omp_set_num_threads(numThread); // Установка количества потоков
+
+        // Измерение времени суммирования массива одинарной точности
+        clock_t start = clock();
+        float sumAsgl = 0.0f;
+#pragma omp parallel for reduction(+:sumAsgl)
+        for (int j = 0; j < ARRAY_SIZE; ++j) {
+            sumAsgl += Asgl[j];
+        }
+        clock_t end = clock();
+        double elapsedTimeAsgl = static_cast<double>(end - start) / CLOCKS_PER_SEC;
+
+        // Измерение времени суммирования массива двойной точности
+        start = clock();
+        double sumAdbl = 0.0;
+#pragma omp parallel for reduction(+:sumAdbl)
+        for (int j = 0; j < ARRAY_SIZE; ++j) {
+            sumAdbl += Adbl[j];
+        }
+        end = clock();
+        double elapsedTimeAdbl = static_cast<double>(end - start) / CLOCKS_PER_SEC;
+
+        // Запись времени выполнения в массивы
+        elapsedTimesAsgl[i] = elapsedTimeAsgl;
+        elapsedTimesAdbl[i] = elapsedTimeAdbl;
+    }
+
+    // Вывод результатов в таблицу
+    std::cout << "Num Threads\tElapsed Time (single precision)\tElapsed Time (double precision)" << std::endl;
+    for (int i = 0; i < 5; ++i) {
+        std::cout << numThreads[i] << "\t\t" << elapsedTimesAsgl[i] << " seconds\t\t" << elapsedTimesAdbl[i] << " seconds" << std::endl;
+    }
+
+    // Освобождение памяти
+    delete[] Asgl;
+    delete[] Adbl;
+
+    return 0;
 }
-
-// Запуск программы: CTRL+F5 или меню "Отладка" > "Запуск без отладки"
-// Отладка программы: F5 или меню "Отладка" > "Запустить отладку"
-
-// Советы по началу работы 
-//   1. В окне обозревателя решений можно добавлять файлы и управлять ими.
-//   2. В окне Team Explorer можно подключиться к системе управления версиями.
-//   3. В окне "Выходные данные" можно просматривать выходные данные сборки и другие сообщения.
-//   4. В окне "Список ошибок" можно просматривать ошибки.
-//   5. Последовательно выберите пункты меню "Проект" > "Добавить новый элемент", чтобы создать файлы кода, или "Проект" > "Добавить существующий элемент", чтобы добавить в проект существующие файлы кода.
-//   6. Чтобы снова открыть этот проект позже, выберите пункты меню "Файл" > "Открыть" > "Проект" и выберите SLN-файл.
