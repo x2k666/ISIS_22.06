@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <omp.h>
 
-const int ARRAY_SIZE = 10e6; // Размер массива
+const int ARRAY_SIZE = 10e7; // Размер массива
 
 int main() {
     // Создание и заполнение массива одинарной точности
